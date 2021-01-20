@@ -42,16 +42,12 @@ extern "C"
 /*=============================================================================
  =======                VARIABLES & MESSAGES & RESSOURCEN               =======
  =============================================================================*/
-// measurement stuff
+// measurement
 volatile uint32 measure_irq = 0ul;
-volatile double CPM;
+volatile double cpm;
 volatile double uSvph;
 volatile uint32 hitCount = 0ul;
 volatile boolean new_measurement = false;
-
-// topics
-char topic_cpm[30] = "/";
-char topic_usvph[30] = "/";
 
 // mqtt
 IPAddress mqtt_server;
@@ -66,9 +62,12 @@ char mqtt_ip[MQTT_IP_LENGTH] = "";
 char mqtt_user[MQTT_USER_LENGTH] = "";
 char mqtt_password[MQTT_PASSWORD_LENGTH] = "";
 
+char topic_cpm[30] = "/";
+char topic_uSvph[30] = "/";
+
 boolean mqtt_connected = false;
 
-// WIFI
+// wifi
 WiFiManager wifiManager;
 WiFiEventHandler wifiConnectHandler;
 WiFiEventHandler wifiDisconnectHandler;
@@ -86,14 +85,14 @@ ICACHE_RAM_ATTR void GMpulse(void)
 
 ICACHE_RAM_ATTR void measure_updater(void)
 {
-  measure_irq = (measure_irq + 1) % (MEASURE_INTERVAL_MINUTES * 60);  
+  measure_irq = (measure_irq + 1ul) % (MEASURE_INTERVAL_MINUTES * 60);  
   if (measure_irq == 0ul)
   {
-    // calculate averaged CPM value for one tube
-    CPM = (((double)hitCount) / ((double)MEASURE_INTERVAL_MINUTES)) / ((double)NBR_GMTUBES);
+    // calculate averaged cpm value for one tube
+    cpm = (((double)hitCount) / ((double)MEASURE_INTERVAL_MINUTES)) / ((double)NBR_GMTUBES);
     hitCount = 0ul;
-    // calculate uSvph value from CPM value
-    uSvph = CPM * TUBE_FACTOR;
+    // calculate uSvph value from cpm value
+    uSvph = cpm * TUBE_FACTOR;
 
     new_measurement = true;
   }
@@ -195,13 +194,14 @@ void setup(void)
 
   WiFiManagerParameter custom_mqtt_ip("ip", "MQTT ip", mqtt_ip_pre, MQTT_IP_LENGTH);
   WiFiManagerParameter custom_mqtt_user("user", "MQTT user", mqtt_user_pre, MQTT_USER_LENGTH);
-  WiFiManagerParameter custom_mqtt_password("passord", "MQTT password", mqtt_password_pre, MQTT_PASSWORD_LENGTH, "type=\"password\"");
+  WiFiManagerParameter custom_mqtt_password("password", "MQTT password", mqtt_password_pre, MQTT_PASSWORD_LENGTH, "type=\"password\"");
 
   wifiManager.addParameter(&custom_mqtt_ip);
   wifiManager.addParameter(&custom_mqtt_user);
   wifiManager.addParameter(&custom_mqtt_password);
 
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  WiFi.mode(WIFI_STA);
   wifiManager.setConfigPortalTimeout(AP_TIMEOUT);
   wifiManager.setAPStaticIPConfig(IPAddress(192,168,1,1), IPAddress(192,168,1,1), IPAddress(255,255,255,0));
   if (!wifiManager.autoConnect(AP_NAME))
@@ -238,8 +238,8 @@ void setup(void)
 
   strcat(topic_cpm, mac_str);
   strcat(topic_cpm, "/cpm");
-  strcat(topic_usvph, mac_str);
-  strcat(topic_usvph, "/usvph");
+  strcat(topic_uSvph, mac_str);
+  strcat(topic_uSvph, "/usvph");
 
   if (mqtt_server.fromString(mqtt_ip))
   {
@@ -271,18 +271,18 @@ void setup(void)
 }
 
 void loop(void)
-{
+{  
   if ((mqtt_connected == true) && (new_measurement == true))
   {
-	  char CPM_str[10];
+	  char cpm_str[10];
     char uSvph_str[10];
 
 	  new_measurement = false;
 
-    Serial.printf("Publish: CPM: %.2f uSvph: %.4f\n", CPM, uSvph);
-    snprintf(CPM_str, 10, "%.2f", CPM);
+    Serial.printf("Publish: %.2f cpm    %.4f uSvph\n", cpm, uSvph);
+    snprintf(cpm_str, 10, "%.2f", cpm);
     snprintf(uSvph_str, 10, "%.4f", uSvph);
-    mqttClient.publish(topic_cpm, 0, true, CPM_str);
-    mqttClient.publish(topic_usvph, 0, true, uSvph_str);
+    mqttClient.publish(topic_cpm, 0, true, cpm_str);
+    mqttClient.publish(topic_uSvph, 0, true, uSvph_str);
   }
 }
