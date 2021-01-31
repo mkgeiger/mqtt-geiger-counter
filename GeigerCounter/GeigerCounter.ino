@@ -262,7 +262,7 @@ void setup(void)
 
   // GMpulse (interrupt, D7 = GPIO13)
   pinMode(D7, INPUT);
-  attachInterrupt(digitalPinToInterrupt(D7), GMpulse, FALLING);
+  attachInterrupt(digitalPinToInterrupt(D7), GMpulse, RISING);
 
   // cyclic measurement funtion (every 1 second)
   hw_timer_init(FRC1_SOURCE, 1);
