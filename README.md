@@ -4,7 +4,8 @@ In this project you will see how to build a MQTT client on base of an ESP8266 to
 
 ## Hardware design
 ### Schematic
-Please refer to my other project: https://github.com/mkgeiger/geiger-counter-iot/blob/master/README.md#high-voltage-booster
+Please refer to my other project: https://github.com/mkgeiger/geiger-counter-iot/blob/master/README.md#high-voltage-booster. In a second revision I replaced the high voltage circuit with the Theremino Geiger adapter, which is smaller and supplies a much more stable high voltage output. Documentation for this module can be found under https://www.theremino.com/en/technical/schematics#geigeradapter. An external resistor of 100kOhm at the signal output shifts the logical level from 5V to 3.3V.
+![MqttSetup](/ThereminoGeiger.png)
 
 ### ESP8266 controller board
 Please refer to my other project: https://github.com/mkgeiger/geiger-counter-iot/blob/master/README.md#nodemcu-esp8266-12e
